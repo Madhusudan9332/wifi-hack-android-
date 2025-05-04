@@ -11,7 +11,7 @@ jobs:
       run: echo "Hello GitHub" > test.txt
 
     - name: Upload file
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: test-file
         path: test.txt
