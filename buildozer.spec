@@ -25,4 +25,4 @@ android.arch = armeabi-v7a
 android.ndk = 25b
 # (optional) If you want to run with python 3.10 support
 android.ndk_api = 21
-android.private_storage = True
+android.private_storage = False
