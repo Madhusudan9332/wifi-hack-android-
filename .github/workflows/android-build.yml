@@ -18,7 +18,6 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: '3.10'
-          
 
     - name: Install dependencies
       run: |
@@ -30,16 +29,40 @@ jobs:
         pip install --upgrade pip
         pip install cython buildozer
 
-    - name: Build APK
+    - name: Install Android SDK
       run: |
-        buildozer android debug
+        mkdir -p $HOME/android-sdk/cmdline-tools
+        cd $HOME/android-sdk/cmdline-tools
+        wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O sdk-tools.zip
+        unzip sdk-tools.zip
+        mv cmdline-tools latest
+      env:
+        JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
+
+    - name: Set environment variables
+      run: |
+        echo "ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
+        echo "PATH=$HOME/android-sdk/cmdline-tools/latest/bin:$HOME/android-sdk/platform-tools:$PATH" >> $GITHUB_ENV
+
+    - name: Accept Android SDK licenses
+      run: yes | $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses
+
+    - name: Install Android SDK packages
+      run: |
+        sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2"
+
+    - name: Update buildozer.spec to use stable build tools
+      run: |
+        sed -i 's/^#*android.build_tools_version = .*/android.build_tools_version = 33.0.2/' buildozer.spec
+
+    - name: Build APK
+      run: buildozer android debug
 
     - name: Commit APK
       run: |
         git config user.name "github-actions"
         git config user.email "github-actions@github.com"
-        git add bin/*.apk
-        git commit -m "Add built APK"
-        git push origin HEAD:apk-output
-  #      name: wifi_hack_apk
-    #    path: bin/*.apk
+        git checkout -b apk-output || git checkout apk-output
+        git add bin/*.apk || echo "No APK found to commit."
+        git commit -m "Add built APK" || echo "Nothing to commit."
+        git push origin apk-output
