@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   build:
@@ -11,29 +12,29 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
-        python-version: '3.x'
+        python-version: '3.10'
 
     - name: Install dependencies
       run: |
         sudo apt update
-        sudo apt install -y python3-pip build-essential libssl-dev libffi-dev python3-dev
-        sudo apt install -y libncurses5-dev libsqlite3-dev libgdbm-dev libbz2-dev
-        sudo apt install -y git zip
+        sudo apt install -y git zip unzip openjdk-17-jdk python3-pip \
+          build-essential autoconf automake libtool pkg-config \
+          zlib1g-dev libncurses5 libncurses5-dev libsqlite3-dev \
+          libgdbm-dev libbz2-dev libffi-dev libssl-dev
         pip install --upgrade pip
-        pip install buildozer
+        pip install cython buildozer
 
-    - name: Install Buildozer and SDK/NDK dependencies
+    - name: Build APK
       run: |
-        buildozer init
         buildozer android debug
 
-    - name: Upload APK as artifact
-      uses: actions/upload-artifact@v2
+    - name: Upload APK
+      uses: actions/upload-artifact@v3
       with:
-        name: wifi_connector_apk
-        path: bin/wifi_connector-debug.apk
+        name: wifi_hack_apk
+        path: bin/*.apk
